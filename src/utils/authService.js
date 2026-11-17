@@ -1,10 +1,9 @@
-// Foydalanuvchilar va ularning individual ma'lumotlarini boshqaruvchi xizmat
+// Foydalanuvchilar, ularning distrolari va natijalarini boshqaruvchi yangilangan xizmat
 
-const USERS_KEY = "bash_trainer_users_v2";
-const CURRENT_SESSION_KEY = "bash_trainer_session_user_v2";
+const USERS_KEY = "bash_trainer_users_v3";
+const CURRENT_SESSION_KEY = "bash_trainer_session_user_v3";
 
 export const authService = {
-  // Barcha ro'yxatdan o'tgan foydalanuvchilar
   getAllUsers() {
     try {
       const data = localStorage.getItem(USERS_KEY);
@@ -15,7 +14,6 @@ export const authService = {
     }
   },
 
-  // Hozir tizimga kirgan foydalanuvchi logini
   getCurrentUser() {
     try {
       return localStorage.getItem(CURRENT_SESSION_KEY) || null;
@@ -24,8 +22,7 @@ export const authService = {
     }
   },
 
-  // Ro'yxatdan o'tish (Register)
-  register(name, login, password) {
+  register(name, login, password, initialDistro = "ubuntu") {
     const cleanLogin = login.trim().toLowerCase();
     if (!cleanLogin || !password || !name) {
       return { success: false, message: "Barcha maydonlarni to'ldiring!" };
@@ -38,14 +35,19 @@ export const authService = {
     users[cleanLogin] = {
       name: name.trim(),
       login: cleanLogin,
-      password: password, // client-side local storage
+      password: password,
+      activeDistro: initialDistro,
+      unlockedDistros: [initialDistro], // Faqat boshlang'ich distro ochiq
+      theme: "darkBlack",
       createdAt: new Date().toISOString(),
-      // Foydalanuvchining shaxsiy saqlangan trenajyor ma'lumotlari:
-      data: {
-        currentStageId: 1,
-        completedStages: [],
-        fs: null,
-        history: []
+      // Har bir distro uchun alohida progress
+      distroData: {
+        [initialDistro]: {
+          currentStageId: 1,
+          completedStages: [],
+          fs: null,
+          history: []
+        }
       }
     };
 
@@ -54,7 +56,6 @@ export const authService = {
     return { success: true, user: users[cleanLogin] };
   },
 
-  // Tizimga kirish (Login)
   login(login, password) {
     const cleanLogin = login.trim().toLowerCase();
     const users = this.getAllUsers();
@@ -68,39 +69,78 @@ export const authService = {
     return { success: true, user };
   },
 
-  // Chiqish (Logout)
   logout() {
     localStorage.removeItem(CURRENT_SESSION_KEY);
   },
 
-  // Foydalanuvchining o'quv natijalarini saqlash
-  saveUserData(login, { currentStageId, completedStages, fsData, history }) {
-    if (!login) return;
+  // Distro ma'lumotlarini saqlash
+  saveDistroProgress(login, distroId, { currentStageId, completedStages, fsData, history }) {
+    if (!login || !distroId) return;
     const users = this.getAllUsers();
     if (users[login]) {
-      users[login].data = {
+      if (!users[login].distroData) users[login].distroData = {};
+      users[login].distroData[distroId] = {
         currentStageId,
         completedStages,
         fs: fsData,
         history
       };
+
+      // Agar ushbu distroning barcha 45 ta vazifasi tugasa, barcha distrolarni ochish yoki navbatdagisini ochish
+      if (completedStages.length >= 45) {
+        const allDistroIds = ["ubuntu", "tuxedo", "arch", "fedora", "kali"];
+        const unlocked = users[login].unlockedDistros || [distroId];
+        allDistroIds.forEach(id => {
+          if (!unlocked.includes(id)) unlocked.push(id);
+        });
+        users[login].unlockedDistros = unlocked;
+      }
+
       localStorage.setItem(USERS_KEY, JSON.stringify(users));
     }
   },
 
-  // Foydalanuvchining ma'lumotlarini olish
-  getUserData(login) {
-    if (!login) return null;
+  // Distro ma'lumotlarini olish
+  getDistroProgress(login, distroId) {
+    if (!login || !distroId) return null;
     const users = this.getAllUsers();
-    return users[login]?.data || null;
+    return users[login]?.distroData?.[distroId] || null;
   },
 
-  // Foydalanuvchining o'quv natijalarini tozalash (Restart)
-  resetUserData(login) {
+  // Faol distroni o'zgartirish
+  setActiveDistro(login, distroId) {
     if (!login) return;
     const users = this.getAllUsers();
     if (users[login]) {
-      users[login].data = {
+      users[login].activeDistro = distroId;
+      if (!users[login].distroData) users[login].distroData = {};
+      if (!users[login].distroData[distroId]) {
+        users[login].distroData[distroId] = {
+          currentStageId: 1,
+          completedStages: [],
+          fs: null,
+          history: []
+        };
+      }
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    }
+  },
+
+  // Mavzuni saqlash
+  saveTheme(login, themeId) {
+    if (!login) return;
+    const users = this.getAllUsers();
+    if (users[login]) {
+      users[login].theme = themeId;
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    }
+  },
+
+  resetDistroProgress(login, distroId) {
+    if (!login || !distroId) return;
+    const users = this.getAllUsers();
+    if (users[login] && users[login].distroData?.[distroId]) {
+      users[login].distroData[distroId] = {
         currentStageId: 1,
         completedStages: [],
         fs: null,
