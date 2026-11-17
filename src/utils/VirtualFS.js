@@ -624,6 +624,66 @@ export class VirtualFS {
         return { output: "", success: true };
       }
 
+      case "apt":
+      case "apt-get": {
+        const sub = cleanArgs[0];
+        if (sub === "update") {
+          return {
+            output: "Hit:1 http://archive.ubuntu.com/ubuntu noble InRelease\nGet:2 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]\nFetched 126 kB in 1s (115 kB/s)\nReading package lists... Done\nBuilding dependency tree... Done",
+            success: true
+          };
+        }
+        if (sub === "install") {
+          const pkg = cleanArgs[1] || "dastur";
+          return {
+            output: `Reading package lists... Done\nBuilding dependency tree... Done\nThe following NEW packages will be installed:\n  ${pkg}\n0 upgraded, 1 newly installed, 0 to remove.\nSetting up ${pkg} ...\nDone!`,
+            success: true
+          };
+        }
+        return { output: `apt: '${sub}' buyrug'i bajarildi`, success: true };
+      }
+
+      case "dnf":
+      case "yum": {
+        const sub = cleanArgs[0];
+        if (sub === "check-update" || sub === "update") {
+          return {
+            output: "Fedora 40 - x86_64                                  3.2 MB/s |  38 MB     00:11\nFedora 40 openh264 (Cisco Internet Innovation Lab)   4.5 kB/s | 2.1 kB     00:00\nFedora 40 - x86_64 - Updates                          4.1 MB/s |  22 MB     00:05\nLast metadata expiration check: 0:02:15 ago.\nDependencies resolved.",
+            success: true
+          };
+        }
+        if (sub === "install") {
+          const pkg = cleanArgs[1] || "dastur";
+          return {
+            output: `Last metadata expiration check: 0:05:12 ago.\nDependencies resolved.\n================================================================================\n Package          Architecture    Version           Repository             Size\n================================================================================\nInstalling:\n ${pkg}           x86_64          1.24.0-1.fc40     fedora                1.5 M\n\nTransaction Summary\nInstall  1 Package\n\nComplete!`,
+            success: true
+          };
+        }
+        return { output: `dnf: '${sub}' buyrug'i bajarildi`, success: true };
+      }
+
+      case "pacman": {
+        if (cleanArgs.some(a => a.includes("S"))) {
+          return {
+            output: ":: Synchronizing package databases...\n core is up to date\n extra is up to date\n multilib is up to date\nresolving dependencies...\nlooking for conflicting packages...\n\nPackages (1) nginx-1.26.1-1\n\nTotal Download Size:    0.54 MiB\nTotal Installed Size:   1.89 MiB\n\n:: Proceed with installation? [Y/n] y\n(1/1) checking keys in keyring                     [######################] 100%\n(1/1) checking package integrity                   [######################] 100%\n(1/1) installing nginx                             [######################] 100%",
+            success: true
+          };
+        }
+        return { output: "pacman: operatsiya muvaffaqiyatli yakunlandi", success: true };
+      }
+
+      case "rpm": {
+        return {
+          output: "nginx-1.24.0-1.fc40.x86_64\nbash-5.2.26-1.fc40.x86_64\nkernel-6.8.11-300.fc40.x86_64",
+          success: true
+        };
+      }
+
+      case "sudo": {
+        const remaining = cleanArgs.join(" ");
+        return this.executeSingle(remaining, stdinData);
+      }
+
       case "history":
         return { output: "  1 pwd\n  2 ls -la\n  3 whoami\n  4 ps aux", success: true };
 
