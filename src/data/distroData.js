@@ -262,7 +262,7 @@ export function generateDistroStages(distro) {
       id: 16,
       title: `16. ${distro.name} versiyasini tekshirish`,
       command: "cat /etc/os-release",
-      description: `${distro.name} distributivi haqidagi rasmiy ma'lumotni `/etc/os-release` dan o'qing.`,
+      description: `${distro.name} distributivi haqidagi rasmiy ma'lumotni /etc/os-release dan o'qing.`,
       task: "`cat /etc/os-release` deb yozing.",
       hint: "`cat /etc/os-release` deb yozing.",
       validate: (cmd) => cmd.trim().startsWith("cat") && cmd.includes("/etc/os-release"),
