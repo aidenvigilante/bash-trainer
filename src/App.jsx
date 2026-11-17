@@ -12,12 +12,14 @@ import {
   Lock, 
   Unlock,
   ChevronDown,
-  Sparkles
+  Sparkles,
+  HelpCircle
 } from 'lucide-react';
 import SidebarTasks from './components/SidebarTasks';
 import TerminalView from './components/TerminalView';
 import CheatSheet from './components/CheatSheet';
 import AuthModal from './components/AuthModal';
+import OnboardingTutorial from './components/OnboardingTutorial';
 import { distros, generateDistroStages } from './data/distroData';
 import { cheatSheetData } from './data/trainerData';
 import { themes } from './data/themes';
@@ -55,9 +57,17 @@ export default function App() {
   const [history, setHistory] = useState([]);
   const [inputVal, setInputVal] = useState('');
   const [showCelebrationModal, setShowCelebrationModal] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [mobileTab, setMobileTab] = useState('terminal'); // 'tasks' | 'terminal'
   const [showDistroMenu, setShowDistroMenu] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
+
+  // Check if tutorial should be shown
+  useEffect(() => {
+    if (currentUser && currentUser.seenTutorial === false) {
+      setShowTutorial(true);
+    }
+  }, [currentUser]);
 
   // Load progress when user or distro changes
   useEffect(() => {
@@ -186,7 +196,6 @@ export default function App() {
   };
 
   const handleSwitchDistro = (distroId) => {
-    // Tekshirish: Qulflanganmi?
     const unlocked = currentUser?.unlockedDistros || ["ubuntu"];
     if (!unlocked.includes(distroId)) {
       alert(`🔒 Diqqat: Siz avval joriy (${currentDistro.name}) distroning 45 ta darsini to'liq tugatishingiz kerak!`);
@@ -207,6 +216,14 @@ export default function App() {
     setShowThemeMenu(false);
   };
 
+  const handleCompleteTutorial = () => {
+    setShowTutorial(false);
+    if (currentUser) {
+      authService.markTutorialSeen(currentUser.login);
+      setCurrentUser(prev => ({ ...prev, seenTutorial: true }));
+    }
+  };
+
   return (
     <div className={`flex flex-col h-screen w-screen ${theme.bg} ${theme.textMain} font-mono select-none overflow-hidden transition-colors duration-300`}>
       {/* Auth Modal */}
@@ -215,7 +232,18 @@ export default function App() {
           setCurrentUser(user);
           setCurrentDistroId(user.activeDistro || "ubuntu");
           setCurrentThemeId(user.theme || "darkBlack");
+          if (user.seenTutorial === false) {
+            setShowTutorial(true);
+          }
         }} />
+      )}
+
+      {/* Onboarding Interactive Tutorial Modal */}
+      {showTutorial && (
+        <OnboardingTutorial 
+          theme={theme}
+          onComplete={handleCompleteTutorial}
+        />
       )}
 
       {/* Top Main Navigation Header */}
@@ -318,6 +346,16 @@ export default function App() {
 
         {/* Right: Theme Selector, User & Actions */}
         <div className="flex items-center gap-2 text-xs">
+          {/* Guide / Tutorial button */}
+          <button
+            onClick={() => setShowTutorial(true)}
+            title="Qo'llanma va Tanishuv (Tutorial)"
+            className={`flex items-center gap-1 px-2 py-1 rounded-lg border ${theme.border} ${theme.bgCard} text-xs ${theme.textDim} hover:${theme.textMain} transition-colors`}
+          >
+            <HelpCircle className="w-3.5 h-3.5 text-sky-400" />
+            <span className="hidden sm:inline">Qo'llanma</span>
+          </button>
+
           {/* Theme Selector */}
           <div className="relative">
             <button

@@ -39,6 +39,7 @@ export const authService = {
       activeDistro: initialDistro,
       unlockedDistros: [initialDistro], // Faqat boshlang'ich distro ochiq
       theme: "darkBlack",
+      seenTutorial: false, // Yangi foydalanuvchi uchun tutorial faol bo'ladi
       createdAt: new Date().toISOString(),
       // Har bir distro uchun alohida progress
       distroData: {
@@ -73,6 +74,16 @@ export const authService = {
     localStorage.removeItem(CURRENT_SESSION_KEY);
   },
 
+  // Tutorial ko'rilganini belgilash
+  markTutorialSeen(login) {
+    if (!login) return;
+    const users = this.getAllUsers();
+    if (users[login]) {
+      users[login].seenTutorial = true;
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    }
+  },
+
   // Distro ma'lumotlarini saqlash
   saveDistroProgress(login, distroId, { currentStageId, completedStages, fsData, history }) {
     if (!login || !distroId) return;
@@ -86,7 +97,6 @@ export const authService = {
         history
       };
 
-      // Agar ushbu distroning barcha 45 ta vazifasi tugasa, barcha distrolarni ochish yoki navbatdagisini ochish
       if (completedStages.length >= 45) {
         const allDistroIds = ["ubuntu", "tuxedo", "arch", "fedora", "kali"];
         const unlocked = users[login].unlockedDistros || [distroId];
@@ -100,14 +110,12 @@ export const authService = {
     }
   },
 
-  // Distro ma'lumotlarini olish
   getDistroProgress(login, distroId) {
     if (!login || !distroId) return null;
     const users = this.getAllUsers();
     return users[login]?.distroData?.[distroId] || null;
   },
 
-  // Faol distroni o'zgartirish
   setActiveDistro(login, distroId) {
     if (!login) return;
     const users = this.getAllUsers();
@@ -126,7 +134,6 @@ export const authService = {
     }
   },
 
-  // Mavzuni saqlash
   saveTheme(login, themeId) {
     if (!login) return;
     const users = this.getAllUsers();
