@@ -679,6 +679,78 @@ export class VirtualFS {
         };
       }
 
+      case "fastfetch":
+      case "neofetch": {
+        return {
+          output: `
+       _,met$$$$$gg.          user@linux-trainer
+    ,g$$$$$$$$$$$$$$$P.       ------------------
+  ,g$$P"        """Y$$.".     OS: Linux Master Simulator x86_64
+ ,$$P'              \`$$$.     Host: Laptop (Virtual CLI)
+',$$P       ,ggs.     \`$$b:   Kernel: 6.8.11-linux
+\`d$$'     ,$P"'   .    $$$    Uptime: 4 days, 2 hours
+ $$P      d$'     ,    $$$P   Packages: 1420 (native)
+ $$:      $$.   -    ,d$$'    Shell: bash 5.2.26
+ \`$$;      Y$b._   _,d$P'     Terminal: bash-trainer-web
+  Y$$.    \`."Y$$$$P"'         CPU: 12th Gen Intel Core i7 / AMD Ryzen (8)
+   \`$$b      "-.__            Memory: 2.8GiB / 15.3GiB
+    \`Y$$                      Disk (/): 112G / 479G (25%)
+     \`$$b.                    
+       \`Y$$b.                 Palette: ⬛🟥🟩🟨🟦🟪🟦⬜
+          \`"Y$b._
+              \`"""
+`,
+          success: true
+        };
+      }
+
+      case "htop":
+      case "top": {
+        return {
+          output: `Tasks: 142 total, 1 running, 141 sleeping
+%Cpu(s):  2.3 us,  1.1 sy,  0.0 ni, 96.2 id,  0.2 wa,  0.1 hi
+MiB Mem :  15720.4 total,   8620.1 free,   2840.3 used,   4260.0 buff/cache
+MiB Swap:   8192.0 total,   8192.0 free,      0.0 used.  12480.2 avail Mem
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
+ 1024 user      20   0   14.2m   4.1m   3.2m S   1.5   0.4   0:01.12 bash
+ 4096 nginx     20   0  145.2m  18.4m  10.1m S   0.8   1.1   0:03.45 nginx
+  489 user      20   0  890.1m 128.5m  64.2m S   0.3   0.8   0:05.10 desktop
+    1 root      20   0  168.4m  12.8m   8.9m S   0.0   0.1   0:02.04 systemd
+(Chiqish uchun 'q' yoki 'Ctrl+C' shart emas, simulyatsiya rejimi)`,
+          success: true
+        };
+      }
+
+      case "ifconfig":
+      case "ip": {
+        return {
+          output: `1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN
+    inet 127.0.0.1/8 scope host lo
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP
+    inet 192.168.1.105/24 brd 192.168.1.255 scope global dynamic eth0
+    inet6 fe80::a00:27ff:fe4e:66a1/64 scope link`,
+          success: true
+        };
+      }
+
+      case "nmap": {
+        const target = cleanArgs[0] || "localhost";
+        return {
+          output: `Starting Nmap 7.94 ( https://nmap.org ) at ${new Date().toLocaleTimeString()}
+Nmap scan report for ${target}
+Host is up (0.00042s latency).
+Not shown: 997 closed tcp ports (reset)
+PORT     STATE SERVICE
+22/tcp   open  ssh
+80/tcp   open  http
+443/tcp  open  https
+
+Nmap done: 1 IP address scanned in 0.18 seconds`,
+          success: true
+        };
+      }
+
       case "sudo": {
         const remaining = cleanArgs.join(" ");
         return this.executeSingle(remaining, stdinData);
