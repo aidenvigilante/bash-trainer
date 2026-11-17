@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   Terminal, 
@@ -14,46 +14,70 @@ import {
 
 export const tutorialSteps = [
   {
-    target: "distro",
+    targetId: "tour-distro",
     title: "1. Linux Distrosini Tanlash",
-    desc: "Bu yerda siz o'rganayotgan Linux operatsion tizimi ko'rinadi (Ubuntu, Arch, Fedora, Kali, Tuxedo). Bitta distroning 45 ta darsini to'liq tugatganingizdan so'ng keyingi distrolar qulfdan ochiladi!",
-    icon: <ShieldCheck className="w-6 h-6 text-emerald-400" />,
+    desc: "Bu yerda siz o'rganayotgan Linux operatsion tizimi joylashgan. Bitta distroning 45 ta darsini to'liq tugatganingizdan so'ng qolgan barcha distrolar ochiladi!",
+    icon: <ShieldCheck className="w-5 h-5 text-emerald-400" />,
+    placement: "bottom-left"
   },
   {
-    target: "theme",
+    targetId: "tour-themes",
     title: "2. 4 xil UI Mavzulari (Themes)",
-    desc: "Ko'zingizga qulay interfeysni tanlang: 2 ta Dark (Qora va Neon Glow) hamda 2 ta Light (Standart Oq va Qog'ozsimon Krem) mavzular mavjud.",
-    icon: <Palette className="w-6 h-6 text-amber-400" />,
+    desc: "Mavzuni o'zingizga qulay qilib sozlang: 2 ta Dark (Black va Neon) hamda 2 ta Light (Standart Oq va Qog'ozsimon Krem) variantlar mavjud.",
+    icon: <Palette className="w-5 h-5 text-amber-400" />,
+    placement: "bottom-right"
   },
   {
-    target: "tasks",
+    targetId: "tour-sidebar",
     title: "3. Vazifalar Paneli (3 ta Bo'lim)",
-    desc: "Chap tomonda sizning 45 ta amaliy topshirig'ingiz 3 ta yig'iladigan bo'limga ajratilgan: Asoslar (1-15), Matn va Filtrlar (16-30), hamda Admin va Monitoring (31-45).",
-    icon: <BookOpen className="w-6 h-6 text-sky-400" />,
+    desc: "Chap tomonda sizning 45 ta amaliy topshirig'ingiz 3 ta yig'iladigan bo'limga ajratilgan. Har bir bo'limni bosib ochish yoki yopish mumkin.",
+    icon: <BookOpen className="w-5 h-5 text-sky-400" />,
+    placement: "right"
   },
   {
-    target: "hint",
-    title: "4. Maslahat (Hint) va Avto-nusxalash",
-    desc: "Agar biror buyruqni eslay olmasangiz, 'Maslahat kerakmi?' tugmasini bosing. Sizga to'g'ri sintaksis tushuntiriladi va bitta bosish bilan terminalga yozib beriladi.",
-    icon: <HelpCircle className="w-6 h-6 text-amber-400" />,
+    targetId: "tour-terminal",
+    title: "4. Interaktiv Linux CLI Simulyatori",
+    desc: "Haqiqiy Linux terminali! Buyruqlarni klaviaturadan kiritib Enter bosing, oldingi buyruqlarni chaqirish uchun esa Yuqoriga/Pastga strelkalardan foydalaning.",
+    icon: <Terminal className="w-5 h-5 text-emerald-400" />,
+    placement: "left"
   },
   {
-    target: "terminal",
-    title: "5. Interaktiv Linux CLI Simulyatori",
-    desc: "O'ng tomonda haqiqiy Linux terminali joylashgan. Buyruqlarni klaviaturada yozib Enter bosing, buyruqlar tarixini chaqirish uchun Yuqoriga/Pastga strelkalardan foydalaning!",
-    icon: <Terminal className="w-6 h-6 text-emerald-400" />,
-  },
-  {
-    target: "cheatsheet",
-    title: "6. Linux Shpargalkasi (Cheat Sheet)",
-    desc: "Pastki qismda eng ko'p ishlatiladigan buyruqlar to'plangan. Shpargalkadagi istalgan buyruq ustiga bossangiz, u darhol terminalga yoziladi!",
-    icon: <Sparkles className="w-6 h-6 text-fuchsia-400" />,
+    targetId: "tour-cheatsheet",
+    title: "5. Linux Shpargalkasi (Cheat Sheet)",
+    desc: "Eng ko'p ishlatiladigan buyruqlar to'plami. Istalgan buyruq ustiga bir marta bossangiz, u darhol terminalga yoziladi!",
+    icon: <Sparkles className="w-5 h-5 text-fuchsia-400" />,
+    placement: "top"
   }
 ];
 
 export default function OnboardingTutorial({ onComplete, theme }) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [targetRect, setTargetRect] = useState(null);
   const step = tutorialSteps[currentStep];
+
+  // Elementning ekrandagi koordinatalarini hisoblash
+  useEffect(() => {
+    const updatePosition = () => {
+      const el = document.getElementById(step.targetId);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        setTargetRect({
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+          bottom: rect.bottom,
+          right: rect.right
+        });
+      } else {
+        setTargetRect(null);
+      }
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    return () => window.removeEventListener('resize', updatePosition);
+  }, [currentStep, step.targetId]);
 
   const handleNext = () => {
     if (currentStep < tutorialSteps.length - 1) {
@@ -69,84 +93,165 @@ export default function OnboardingTutorial({ onComplete, theme }) {
     }
   };
 
+  // Tooltip oynasining ekranda joylashishi
+  const getTooltipStyle = () => {
+    if (!targetRect) {
+      return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
+    }
+
+    const margin = 16;
+    const isMobile = window.innerWidth < 768;
+
+    if (isMobile) {
+      // Mobilda doimo pastroqda qulay ko'rsatish
+      return {
+        bottom: '24px',
+        left: '16px',
+        right: '16px',
+        width: 'auto'
+      };
+    }
+
+    if (step.placement === "bottom-left") {
+      return {
+        top: `${targetRect.bottom + margin}px`,
+        left: `${Math.max(16, targetRect.left)}px`,
+      };
+    } else if (step.placement === "bottom-right") {
+      return {
+        top: `${targetRect.bottom + margin}px`,
+        right: `${Math.max(16, window.innerWidth - targetRect.right)}px`,
+      };
+    } else if (step.placement === "right") {
+      return {
+        top: `${Math.max(60, targetRect.top + 20)}px`,
+        left: `${targetRect.right + margin}px`,
+      };
+    } else if (step.placement === "left") {
+      return {
+        top: `${Math.max(60, targetRect.top + 60)}px`,
+        left: `${Math.max(16, targetRect.left - 380)}px`,
+      };
+    } else if (step.placement === "top") {
+      return {
+        bottom: `${window.innerHeight - targetRect.top + margin}px`,
+        left: '50%',
+        transform: 'translateX(-50%)',
+      };
+    }
+
+    return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 font-mono select-none animate-in fade-in duration-300">
-      <div className={`relative w-full max-w-lg rounded-2xl border ${theme.accentBorder} ${theme.bgCard} p-6 sm:p-7 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col justify-between`}>
-        {/* Skip button */}
-        <button 
-          onClick={onComplete}
-          className={`absolute top-4 right-4 p-1.5 rounded-lg border ${theme.border} ${theme.textDim} hover:${theme.textMain} hover:${theme.bgSidebar} transition-colors`}
-          title="O'tkazib yuborish (Skip)"
+    <div className="fixed inset-0 z-50 overflow-hidden font-mono select-none">
+      {/* 1. Backdrop va Targetni ramkaga olish (Spotlight Highlight) */}
+      {targetRect && (
+        <div 
+          className="fixed pointer-events-none transition-all duration-300 rounded-xl"
+          style={{
+            top: targetRect.top - 6,
+            left: targetRect.left - 6,
+            width: targetRect.width + 12,
+            height: targetRect.height + 12,
+            boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.78), 0 0 25px rgba(0, 255, 102, 0.8)',
+            border: '2px solid #00ff66',
+          }}
         >
-          <X className="w-4 h-4" />
-        </button>
+          {/* Pulsatsiya qiluvchi nishon burchaklari */}
+          <span className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-emerald-400 rounded-full animate-ping" />
+        </div>
+      )}
 
-        {/* Header with step counter */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-[11px] font-bold uppercase tracking-wider ${theme.accent} flex items-center gap-1.5`}>
-              <Sparkles className="w-3.5 h-3.5" />
-              Tizim bilan tanishuv
-            </span>
-            <span className={`text-xs px-2 py-0.5 rounded-full border ${theme.border} ${theme.textDim}`}>
-              {currentStep + 1} / {tutorialSteps.length}
+      {/* 2. Bog'lovchi chiziq (Pointer / Connector Badge) */}
+      {targetRect && window.innerWidth >= 768 && (
+        <div 
+          className="fixed pointer-events-none z-50 text-emerald-400 font-bold text-xs flex items-center gap-1 transition-all duration-300"
+          style={{
+            top: step.placement.startsWith("bottom") ? targetRect.bottom + 4 : targetRect.top - 18,
+            left: targetRect.left + 8,
+          }}
+        >
+          <span className="animate-bounce">📍 Mana shu maydon</span>
+        </div>
+      )}
+
+      {/* 3. Yo'naltiruvchi Tushuntirish Kartochkasi (Floating Tooltip Card) */}
+      <div 
+        style={getTooltipStyle()}
+        className={`fixed z-50 w-full max-w-sm rounded-2xl border ${theme.accentBorder} ${theme.bgCard} p-5 shadow-[0_0_40px_rgba(0,0,0,0.8)] transition-all duration-300`}
+      >
+        {/* Yuqori qism: Bosqich raqami va Yopish */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${theme.accent} flex items-center gap-1`}>
+              <Sparkles className="w-3 h-3" />
+              Yo'riqnoma {currentStep + 1} / {tutorialSteps.length}
             </span>
           </div>
 
-          {/* Dots Indicator */}
-          <div className="flex gap-1.5 w-full">
-            {tutorialSteps.map((_, idx) => (
-              <div 
-                key={idx}
-                className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-                  idx === currentStep 
-                    ? `${theme.accentBg}` 
-                    : idx < currentStep 
-                    ? 'bg-emerald-500/50' 
-                    : 'bg-white/10'
-                }`}
-              />
-            ))}
-          </div>
+          <button 
+            onClick={onComplete}
+            className={`p-1 rounded-md ${theme.textDim} hover:${theme.textMain} hover:${theme.bgSidebar} transition-colors`}
+            title="O'tkazib yuborish"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
-        {/* Content Body */}
-        <div className="my-4 min-h-[140px] flex flex-col justify-center">
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`w-12 h-12 rounded-xl border ${theme.accentBorder} ${theme.bgSidebar} flex items-center justify-center flex-shrink-0 shadow-lg`}>
+        {/* Progress chizig'i */}
+        <div className="flex gap-1 w-full mb-3">
+          {tutorialSteps.map((_, idx) => (
+            <div 
+              key={idx}
+              className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                idx === currentStep 
+                  ? `${theme.accentBg}` 
+                  : idx < currentStep 
+                  ? 'bg-emerald-500/50' 
+                  : 'bg-white/10'
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Sarlavha va Matn */}
+        <div className="mb-4">
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className={`w-8 h-8 rounded-lg border ${theme.accentBorder} ${theme.bgSidebar} flex items-center justify-center flex-shrink-0 shadow-sm`}>
               {step.icon}
             </div>
-            <h3 className={`text-base sm:text-lg font-bold ${theme.textMain} leading-tight`}>
+            <h4 className={`text-sm font-bold ${theme.textMain} leading-tight`}>
               {step.title}
-            </h3>
+            </h4>
           </div>
 
-          <p className={`text-xs sm:text-sm ${theme.textDim} leading-relaxed`}>
+          <p className={`text-xs ${theme.textDim} leading-relaxed`}>
             {step.desc}
           </p>
         </div>
 
-        {/* Bottom Actions */}
-        <div className={`pt-4 border-t ${theme.border} flex items-center justify-between gap-3`}>
+        {/* Tugmalar */}
+        <div className={`pt-3 border-t ${theme.border} flex items-center justify-between gap-2`}>
           <button
             onClick={handlePrev}
             disabled={currentStep === 0}
-            className={`py-2 px-3 rounded-lg border ${theme.border} ${theme.textDim} hover:${theme.textMain} disabled:opacity-30 disabled:cursor-not-allowed text-xs flex items-center gap-1 transition-colors`}
+            className={`py-1.5 px-3 rounded-lg border ${theme.border} ${theme.textDim} hover:${theme.textMain} disabled:opacity-30 disabled:cursor-not-allowed text-xs flex items-center gap-1 transition-colors`}
           >
-            <ChevronLeft className="w-4 h-4" /> Orqaga
+            <ChevronLeft className="w-3.5 h-3.5" /> Orqaga
           </button>
 
           <button
             onClick={handleNext}
-            className={`py-2 px-5 rounded-lg ${theme.accentBg} text-xs font-bold flex items-center gap-1.5 transition-all shadow-md`}
+            className={`py-1.5 px-4 rounded-lg ${theme.accentBg} text-xs font-bold flex items-center gap-1 transition-all shadow-md`}
           >
             {currentStep === tutorialSteps.length - 1 ? (
               <>
-                <CheckCircle2 className="w-4 h-4" /> Boshlash!
+                <CheckCircle2 className="w-3.5 h-3.5" /> Tushundim, boshlash!
               </>
             ) : (
               <>
-                Davom etish <ChevronRight className="w-4 h-4" />
+                Keyingisi <ChevronRight className="w-3.5 h-3.5" />
               </>
             )}
           </button>

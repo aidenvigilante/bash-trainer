@@ -238,7 +238,7 @@ export default function App() {
         }} />
       )}
 
-      {/* Onboarding Interactive Tutorial Modal */}
+      {/* Onboarding Interactive Spotlight Tutorial Modal */}
       {showTutorial && (
         <OnboardingTutorial 
           theme={theme}
@@ -261,8 +261,8 @@ export default function App() {
             </div>
           </div>
 
-          {/* Distro Dropdown with Lock Status */}
-          <div className="relative">
+          {/* Distro Dropdown with Target ID */}
+          <div id="tour-distro" className="relative">
             <button
               onClick={() => {
                 setShowDistroMenu(!showDistroMenu);
@@ -356,8 +356,8 @@ export default function App() {
             <span className="hidden sm:inline">Qo'llanma</span>
           </button>
 
-          {/* Theme Selector */}
-          <div className="relative">
+          {/* Theme Selector with Target ID */}
+          <div id="tour-themes" className="relative">
             <button
               onClick={() => {
                 setShowThemeMenu(!showThemeMenu);
@@ -415,8 +415,8 @@ export default function App() {
 
       {/* Main Workspace */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
-        {/* Left side: Tasks list */}
-        <div className={`w-full md:w-[380px] lg:w-[420px] flex-shrink-0 h-full ${
+        {/* Left side: Tasks list with Target ID */}
+        <div id="tour-sidebar" className={`w-full md:w-[380px] lg:w-[420px] flex-shrink-0 h-full ${
           mobileTab === 'tasks' ? 'flex' : 'hidden md:flex'
         }`}>
           <SidebarTasks
@@ -436,7 +436,8 @@ export default function App() {
         <div className={`flex-1 flex-col h-full overflow-hidden ${theme.bgTerminal} ${
           mobileTab === 'terminal' ? 'flex' : 'hidden md:flex'
         }`}>
-          <div className="flex-1 min-h-0">
+          {/* Terminal with Target ID */}
+          <div id="tour-terminal" className="flex-1 min-h-0">
             <TerminalView
               history={history}
               onCommandSubmit={handleCommandSubmit}
@@ -449,8 +450,8 @@ export default function App() {
             />
           </div>
 
-          {/* Bottom CheatSheet */}
-          <div className="flex-shrink-0">
+          {/* Bottom CheatSheet with Target ID */}
+          <div id="tour-cheatsheet" className="flex-shrink-0">
             <CheatSheet
               cheatSheetData={cheatSheetData}
               onInsertCommand={(cmd) => setInputVal(cmd)}
