@@ -6,7 +6,8 @@ import {
   ChevronRight, 
   ChevronLeft, 
   Terminal, 
-  Sparkles,
+  Sparkles, 
+  Target,
   BookOpen,
   ChevronDown,
   Layers,
@@ -27,8 +28,6 @@ export default function SidebarTasks({
   const isCompleted = completedStages.includes(currentStage.id);
   const progressPercent = Math.round((completedStages.length / stages.length) * 100);
 
-  // 3 ta bo'limni ochiq/yopiq holati (Accordion)
-  // Qaysi bo'limdagi topshiriq faol bo'lsa, o'sha bo'lim avtomatik ochiq bo'ladi
   const [openSections, setOpenSections] = useState({
     part1: true,
     part2: currentStageId >= 16 && currentStageId <= 30,
@@ -44,7 +43,6 @@ export default function SidebarTasks({
 
   const isLight = theme.type === "light";
 
-  // 3 ta guruhga ajratish
   const sections = [
     {
       key: "part1",
@@ -75,13 +73,13 @@ export default function SidebarTasks({
   return (
     <div className={`flex flex-col h-full ${theme.bgSidebar} border-r ${theme.border} overflow-hidden select-none`}>
       {/* Progress & Header */}
-      <div className={`p-4 border-b ${theme.border} ${isLight ? 'bg-slate-50' : 'bg-black/20'}`}>
+      <div className={`p-3.5 border-b ${theme.border} ${isLight ? 'bg-slate-50' : 'bg-black/20'}`}>
         <div className="flex items-center justify-between mb-2">
           <span className={`text-xs font-semibold uppercase tracking-wider ${theme.textDim} flex items-center gap-1.5`}>
             <BookOpen className={`w-3.5 h-3.5 ${theme.accent}`} />
             Vazifalar kursi
           </span>
-          <span className={`text-xs px-2 py-0.5 rounded-full font-mono ${isLight ? 'bg-slate-200' : 'bg-white/10'} ${theme.accent} border ${theme.border}`}>
+          <span className={`text-xs px-2.5 py-0.5 rounded-full font-mono font-bold ${isLight ? 'bg-slate-200' : 'bg-white/10'} ${theme.accent} border ${theme.border}`}>
             {completedStages.length} / {stages.length} ({progressPercent}%)
           </span>
         </div>
@@ -95,34 +93,41 @@ export default function SidebarTasks({
         </div>
       </div>
 
-      {/* Active Stage Details */}
-      <div className={`p-4 overflow-y-auto max-h-[320px] flex-shrink-0 border-b ${theme.border} ${isLight ? 'bg-white' : 'bg-black/10'}`}>
-        <div className="flex items-center gap-2 mb-2">
-          <span className={`px-2 py-0.5 text-[11px] font-bold rounded ${theme.accentBorder} border ${theme.accent}`}>
+      {/* Active Stage Details — Katta, qulay va ko'zni toliqtirmaydigan qism */}
+      <div className={`p-4 sm:p-5 overflow-y-auto max-h-[380px] flex-shrink-0 border-b ${theme.border} ${isLight ? 'bg-white' : 'bg-black/10'}`}>
+        {/* Badge & Title */}
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <span className={`px-2.5 py-1 text-xs font-bold rounded-md ${theme.accentBorder} border ${theme.accent} bg-white/5`}>
             Bosqich {currentStage.id} / 45
           </span>
           {isCompleted && (
-            <span className={`px-2 py-0.5 text-[11px] font-bold rounded ${theme.accentBorder} border ${theme.accent} flex items-center gap-1`}>
-              <CheckCircle2 className="w-3 h-3" /> Bajarildi
+            <span className={`px-2.5 py-0.5 text-xs font-bold rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1`}>
+              <CheckCircle2 className="w-3.5 h-3.5" /> Bajarildi
             </span>
           )}
         </div>
 
-        <h2 className={`text-sm sm:text-base font-bold ${theme.textMain} mb-2 leading-tight`}>
+        <h2 className={`text-base sm:text-lg font-bold ${theme.textMain} mb-2 leading-snug`}>
           {currentStage.title}
         </h2>
 
-        <p className={`text-xs ${theme.textDim} mb-3 leading-relaxed ${theme.bgCard} p-2.5 rounded-lg border ${theme.border}`}>
+        {/* Nazariy qisqa tushuntirish */}
+        <p className={`text-xs ${theme.textDim} mb-3.5 leading-relaxed ${theme.bgCard} p-3 rounded-xl border ${theme.border}`}>
           {currentStage.description}
         </p>
 
-        {/* Action Goal */}
-        <div className={`mb-3 ${theme.bgCard} border ${theme.accentBorder} rounded-lg p-2.5`}>
-          <div className={`text-[10px] uppercase tracking-wider font-bold ${theme.accent} mb-1 flex items-center gap-1`}>
-            <Sparkles className="w-3 h-3" />
-            Sizning vazifangiz:
+        {/* ASOSIY VAZIFA BLOKI — KATTA, QALIN VA ANIQ KO'RINADIGAN */}
+        <div className={`mb-3.5 rounded-xl p-3.5 sm:p-4 border-2 transition-all ${
+          isLight 
+            ? 'bg-emerald-50/80 border-emerald-500 text-slate-900 shadow-sm' 
+            : 'bg-emerald-950/30 border-emerald-500/70 text-emerald-100 shadow-[0_0_20px_rgba(0,255,102,0.12)]'
+        }`}>
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold uppercase tracking-wider text-emerald-500 mb-1.5">
+            <Target className="w-4 h-4 animate-pulse flex-shrink-0" />
+            <span>Sizning vazifangiz:</span>
           </div>
-          <div className={`text-xs ${theme.textMain} font-mono font-medium`}>
+          
+          <div className="text-sm sm:text-base font-bold font-mono leading-relaxed select-text">
             {currentStage.task}
           </div>
         </div>
@@ -131,7 +136,7 @@ export default function SidebarTasks({
         <div>
           <button
             onClick={() => setShowHint(!showHint)}
-            className={`w-full py-1.5 px-3 flex items-center justify-between text-xs font-semibold rounded-lg ${theme.bgCard} border ${theme.border} text-amber-500 transition-colors`}
+            className={`w-full py-2 px-3 flex items-center justify-between text-xs font-semibold rounded-lg ${theme.bgCard} border ${theme.border} text-amber-500 hover:brightness-110 transition-all`}
           >
             <span className="flex items-center gap-1.5">
               <HelpCircle className="w-3.5 h-3.5" />
@@ -143,13 +148,13 @@ export default function SidebarTasks({
           </button>
 
           {showHint && (
-            <div className={`mt-2 p-2.5 ${isLight ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-amber-950/20 text-amber-200 border-amber-500/30'} border rounded-lg text-xs`}>
+            <div className={`mt-2 p-3 ${isLight ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-amber-950/30 text-amber-200 border-amber-500/40'} border rounded-xl text-xs`}>
               <div className="mb-2 leading-relaxed">{currentStage.hint}</div>
               <button
                 onClick={() => onApplyHint(currentStage.command)}
-                className={`inline-flex items-center gap-1 text-[11px] font-mono px-2 py-1 rounded ${isLight ? 'bg-amber-200 text-amber-900' : 'bg-amber-500/20 text-amber-300'} border border-amber-500/40 transition-colors`}
+                className={`inline-flex items-center gap-1.5 text-xs font-mono font-bold px-2.5 py-1.5 rounded-lg ${isLight ? 'bg-amber-200 text-amber-950' : 'bg-amber-500/20 text-amber-300'} border border-amber-500/40 hover:brightness-125 transition-all`}
               >
-                <Terminal className="w-3 h-3" />
+                <Terminal className="w-3.5 h-3.5" />
                 Terminalga nusxalash: <code>{currentStage.command}</code>
               </button>
             </div>
@@ -157,14 +162,14 @@ export default function SidebarTasks({
         </div>
 
         {/* Navigation buttons */}
-        <div className="flex items-center justify-between gap-2 mt-3">
+        <div className="flex items-center justify-between gap-2 mt-3.5">
           <button
             disabled={currentStageId <= 1}
             onClick={() => {
               setShowHint(false);
               onSelectStage(currentStageId - 1);
             }}
-            className={`flex-1 py-1 px-2.5 flex items-center justify-center gap-1 text-xs rounded ${theme.bgCard} disabled:opacity-40 disabled:cursor-not-allowed border ${theme.border} ${theme.textMain} transition-all`}
+            className={`flex-1 py-1.5 px-3 flex items-center justify-center gap-1 text-xs font-semibold rounded-lg ${theme.bgCard} disabled:opacity-30 disabled:cursor-not-allowed border ${theme.border} ${theme.textMain} hover:border-gray-500 transition-all`}
           >
             <ChevronLeft className="w-3.5 h-3.5" /> Oldingi
           </button>
@@ -174,7 +179,7 @@ export default function SidebarTasks({
               setShowHint(false);
               onSelectStage(currentStageId + 1);
             }}
-            className={`flex-1 py-1 px-2.5 flex items-center justify-center gap-1 text-xs rounded ${theme.bgCard} disabled:opacity-40 disabled:cursor-not-allowed border ${theme.border} ${theme.textMain} transition-all`}
+            className={`flex-1 py-1.5 px-3 flex items-center justify-center gap-1 text-xs font-semibold rounded-lg ${theme.bgCard} disabled:opacity-30 disabled:cursor-not-allowed border ${theme.border} ${theme.textMain} hover:border-gray-500 transition-all`}
           >
             Keyingi <ChevronRight className="w-3.5 h-3.5" />
           </button>
@@ -182,7 +187,7 @@ export default function SidebarTasks({
       </div>
 
       {/* 3 ta bo'limli Accordion Ro'yxati */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
+      <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {sections.map((section) => {
           const isOpen = openSections[section.key];
           const completedCount = section.stages.filter(s => completedStages.includes(s.id)).length;
@@ -193,7 +198,6 @@ export default function SidebarTasks({
               key={section.key} 
               className={`rounded-xl border ${theme.border} ${theme.bgCard} overflow-hidden transition-all`}
             >
-              {/* Bo'lim Sarlavhasi (Accordion Header) */}
               <button
                 onClick={() => toggleSection(section.key)}
                 className={`w-full p-2.5 flex items-center justify-between text-left transition-colors ${
@@ -226,7 +230,6 @@ export default function SidebarTasks({
                 </div>
               </button>
 
-              {/* Bo'lim Ichidagi Topshiriqlar Ro'yxati (Accordion Content) */}
               {isOpen && (
                 <div className={`p-2 border-t ${theme.border} space-y-1 ${isLight ? 'bg-slate-50' : 'bg-black/10'}`}>
                   {section.stages.map((stage) => {
