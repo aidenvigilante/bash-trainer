@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   CheckCircle2, 
   Circle, 
@@ -6,13 +6,13 @@ import {
   ChevronRight, 
   ChevronLeft, 
   Terminal, 
-  Sparkles, 
   Target,
   BookOpen,
   ChevronDown,
   Layers,
   Flame,
-  Skull
+  Skull,
+  GripHorizontal
 } from 'lucide-react';
 
 export default function SidebarTasks({ 
@@ -28,6 +28,13 @@ export default function SidebarTasks({
   const isCompleted = completedStages.includes(currentStage.id);
   const progressPercent = Math.round((completedStages.length / stages.length) * 100);
 
+  // Yuqori blokning balandligi (Resizable Height in pixels)
+  // Standart holatda 380px, foydalanuvchi xohlagancha pastga yoki yuqoriga cho'zishi mumkin
+  const [topHeight, setTopHeight] = useState(420);
+  const isDraggingRef = useRef(false);
+  const startYRef = useRef(0);
+  const startHeightRef = useRef(420);
+
   const [openSections, setOpenSections] = useState({
     part1: true,
     part2: currentStageId >= 16 && currentStageId <= 30,
@@ -42,6 +49,58 @@ export default function SidebarTasks({
   };
 
   const isLight = theme.type === "light";
+
+  // Drag boshlanishi (Balandlikni o'zgartirish)
+  const handleMouseDown = (e) => {
+    isDraggingRef.current = true;
+    startYRef.current = e.clientY;
+    startHeightRef.current = topHeight;
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  // Touch qo'llab-quvvatlash (telefon/planshet uchun)
+  const handleTouchStart = (e) => {
+    isDraggingRef.current = true;
+    startYRef.current = e.touches[0].clientY;
+    startHeightRef.current = topHeight;
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDraggingRef.current) return;
+      const deltaY = e.clientY - startYRef.current;
+      const newHeight = Math.max(220, Math.min(window.innerHeight - 200, startHeightRef.current + deltaY));
+      setTopHeight(newHeight);
+    };
+
+    const handleTouchMove = (e) => {
+      if (!isDraggingRef.current) return;
+      const deltaY = e.touches[0].clientY - startYRef.current;
+      const newHeight = Math.max(200, Math.min(window.innerHeight - 180, startHeightRef.current + deltaY));
+      setTopHeight(newHeight);
+    };
+
+    const handleMouseUp = () => {
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchmove', handleTouchMove);
+    window.addEventListener('touchend', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleMouseUp);
+    };
+  }, [topHeight]);
 
   const sections = [
     {
@@ -73,7 +132,7 @@ export default function SidebarTasks({
   return (
     <div className={`flex flex-col h-full ${theme.bgSidebar} border-r ${theme.border} overflow-hidden select-none`}>
       {/* Progress & Header */}
-      <div className={`p-3.5 border-b ${theme.border} ${isLight ? 'bg-slate-50' : 'bg-black/20'}`}>
+      <div className={`p-3.5 border-b ${theme.border} ${isLight ? 'bg-slate-50' : 'bg-black/20'} flex-shrink-0`}>
         <div className="flex items-center justify-between mb-2">
           <span className={`text-xs font-semibold uppercase tracking-wider ${theme.textDim} flex items-center gap-1.5`}>
             <BookOpen className={`w-3.5 h-3.5 ${theme.accent}`} />
@@ -93,8 +152,11 @@ export default function SidebarTasks({
         </div>
       </div>
 
-      {/* Active Stage Details — Katta, qulay va ko'zni toliqtirmaydigan qism */}
-      <div className={`p-4 sm:p-5 overflow-y-auto max-h-[380px] flex-shrink-0 border-b ${theme.border} ${isLight ? 'bg-white' : 'bg-black/10'}`}>
+      {/* YUQORI BLOK: Foydalanuvchi balandligini erkin o'zgartira oladi */}
+      <div 
+        style={{ height: `${topHeight}px` }}
+        className={`p-4 sm:p-5 overflow-y-auto flex-shrink-0 ${isLight ? 'bg-white' : 'bg-black/10'}`}
+      >
         {/* Badge & Title */}
         <div className="flex items-center justify-between gap-2 mb-2">
           <span className={`px-2.5 py-1 text-xs font-bold rounded-md ${theme.accentBorder} border ${theme.accent} bg-white/5`}>
@@ -111,12 +173,12 @@ export default function SidebarTasks({
           {currentStage.title}
         </h2>
 
-        {/* Nazariy qisqa tushuntirish */}
+        {/* Nazariy tushuntirish */}
         <p className={`text-xs ${theme.textDim} mb-3.5 leading-relaxed ${theme.bgCard} p-3 rounded-xl border ${theme.border}`}>
           {currentStage.description}
         </p>
 
-        {/* ASOSIY VAZIFA BLOKI — KATTA, QALIN VA ANIQ KO'RINADIGAN */}
+        {/* ASOSIY VAZIFA BLOKI — KATTA VA ANIQ */}
         <div className={`mb-3.5 rounded-xl p-3.5 sm:p-4 border-2 transition-all ${
           isLight 
             ? 'bg-emerald-50/80 border-emerald-500 text-slate-900 shadow-sm' 
@@ -186,7 +248,24 @@ export default function SidebarTasks({
         </div>
       </div>
 
-      {/* 3 ta bo'limli Accordion Ro'yxati */}
+      {/* RESIZABLE DIVIDER — O'RTADAGI SURILADIGAN CHIZIQ (DRAG HANDLE) */}
+      <div
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        className={`h-3 w-full cursor-row-resize flex items-center justify-center border-y ${theme.border} ${
+          isLight ? 'bg-slate-200 hover:bg-emerald-200' : 'bg-[#141d24] hover:bg-emerald-950/60'
+        } transition-colors group flex-shrink-0 shadow-inner`}
+        title="Balandlikni o'zgartirish uchun yuqoriga yoki pastga suring"
+      >
+        <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all">
+          <GripHorizontal className={`w-4 h-4 ${theme.accent}`} />
+          <span className={`text-[9px] font-bold uppercase tracking-wider ${theme.textDim} group-hover:${theme.accent} hidden sm:inline`}>
+            Suring
+          </span>
+        </div>
+      </div>
+
+      {/* PASTKI BLOK: 3 ta bo'limli Accordion Ro'yxati */}
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {sections.map((section) => {
           const isOpen = openSections[section.key];
