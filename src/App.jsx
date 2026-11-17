@@ -59,8 +59,8 @@ export default function App() {
   // Trigger celebration
   const triggerConfetti = () => {
     confetti({
-      particleCount: 100,
-      spread: 70,
+      particleCount: 150,
+      spread: 80,
       origin: { y: 0.6 }
     });
   };
@@ -72,15 +72,10 @@ export default function App() {
     const currentPathBefore = fs.getDisplayPath();
     const result = fs.execute(commandText);
 
-    if (result.clear) {
-      setHistory([]);
-      return;
-    }
-
+    // Validate task completion BEFORE handling clear
     const currentStage = stages.find(s => s.id === currentStageId);
     let taskCompletedNow = false;
 
-    // Check if task is valid for current stage
     if (currentStage && currentStage.validate(commandText, fs, fs.currentPath)) {
       if (!completedStages.includes(currentStage.id)) {
         const nextCompleted = [...completedStages, currentStage.id];
@@ -92,12 +87,30 @@ export default function App() {
         if (nextCompleted.length === stages.length) {
           setShowCelebrationModal(true);
         } else {
-          // Auto advance to next unfinished stage after 1s
+          // Auto advance to next unfinished stage after 800ms
           setTimeout(() => {
             setCurrentStageId(prev => Math.min(stages.length, prev + 1));
           }, 800);
         }
       }
+    }
+
+    // If command was clear, clear history (or show success notification if 15th task)
+    if (result.clear) {
+      if (taskCompletedNow) {
+        setHistory([
+          {
+            command: commandText,
+            path: currentPathBefore,
+            output: "",
+            isSuccess: true,
+            notification: `🎉 Barakalla! Barcha 15 ta bosqich muvaffaqiyatli yakunlandi!`
+          }
+        ]);
+      } else {
+        setHistory([]);
+      }
+      return;
     }
 
     setHistory(prev => [
